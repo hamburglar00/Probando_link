@@ -1,0 +1,210 @@
+/* === RESET === */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html,
+body {
+  height: 100%;
+}
+html {
+  background: #000;
+}
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  color: #fff;
+  background-color: #000;
+  background-image: url("./imagenes/background.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+/* Desktop background */
+@media (min-width: 1024px) {
+  body {
+    background-image: url("./imagenes/desktop-bg.png");
+  }
+}
+
+/* === CONTENEDOR PRINCIPAL === */
+.gn-stage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #12022799;
+}
+
+/* === WRAP (para alinear mascota + card) === */
+.gn-wrap {
+  position: relative;
+  display: inline-block;
+  width: min(92vw, 520px);
+  margin-inline: auto;
+}
+
+/* === CARD PRINCIPAL === */
+.gn-card {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  border-radius: 28px;
+  padding: 70px 24px 28px;
+  text-align: center;
+  background: linear-gradient(145deg, #150028, #0a0016);
+  border: 2px solid rgba(154, 76, 255, 0.45);
+  box-shadow: 0 0 0 2px rgba(154, 76, 255, 0.15) inset,
+    0 14px 40px rgba(0, 0, 0, 0.65), 0 0 26px rgba(154, 76, 255, 0.35);
+}
+
+/* === MASCOTA (centrada y detrás) === */
+.gn-mascot {
+  position: absolute;
+  top: -225px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  pointer-events: none;
+}
+.gn-mascot img {
+  width: 240px;
+  height: 240px;
+  display: block;
+  object-fit: contain;
+  border: none;
+  filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.75));
+}
+
+/* === TÍTULO Y TEXTO === */
+.gn-header h1 {
+  font-size: clamp(20px, 3.6vw, 28px);
+  font-weight: 900;
+  line-height: 1.15;
+  text-shadow: 0 0 14px rgba(154, 76, 255, 0.45);
+  margin-bottom: 10px;
+  color: #fff;
+}
+.gn-text {
+  color: #d7ccf8;
+  font-size: clamp(14px, 3.4vw, 16px);
+  line-height: 1.55;
+  margin: 6px 0 20px;
+}
+
+/* === BOTONERA === */
+.gn-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 220px;
+  margin: 20px auto;
+}
+
+/* === BOTONES BASE === */
+.gn-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 52px; /* altura unificada */
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: clamp(14px, 2.8vw, 16px);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.25s ease, filter 0.15s ease;
+}
+.gn-btn:active {
+  transform: scale(0.985);
+}
+.gn-btn img {
+  width: 20px;
+  height: 20px;
+}
+
+/* === VERDE (WhatsApp) === */
+.gn-btn-solid {
+  color: #000;
+  background: linear-gradient(135deg, #22ff8f, #14dc6d);
+  box-shadow: 0 0 16px rgba(32, 224, 124, 0.45);
+}
+.gn-btn-solid:hover {
+  filter: saturate(1.05);
+  box-shadow: 0 0 22px rgba(32, 224, 124, 0.6);
+}
+
+/* === CELESTE (Telegram) === */
+.gn-btn-telegram {
+  color: #fff;
+  background: linear-gradient(135deg, #37aee2, #1e96c8);
+  box-shadow: 0 0 16px rgba(80, 190, 255, 0.45);
+}
+.gn-btn-telegram:hover {
+  filter: saturate(1.08);
+  box-shadow: 0 0 22px rgba(80, 190, 255, 0.7);
+}
+
+/* === VIOLETA (JUGAR AHORA) === */
+.gn-btn-outline {
+  color: #fff;
+  background: linear-gradient(90deg, #6f1bff, #c32bff);
+  box-shadow: 0 0 16px rgba(154, 76, 255, 0.45);
+}
+.gn-btn-outline:hover {
+  box-shadow: 0 0 22px rgba(210, 75, 255, 0.65);
+  filter: saturate(1.05);
+}
+
+/* === ICONOS === */
+.wa-ic {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+}
+.gn-ic {
+  width: 40px;
+  height: 40px;
+  display: inline-block;
+}
+
+/* === ACCESIBILIDAD === */
+@media (prefers-reduced-motion: reduce) {
+  .gn-btn {
+    transition: none;
+  }
+}
+
+/* === Card sin borde, con fondo y glow suave tipo original === */
+.gn-card {
+  background: linear-gradient(
+    180deg,
+    rgba(22, 0, 40, 0.96),
+    rgba(10, 0, 22, 0.96)
+  );
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.65),
+    0 0 40px rgba(154, 76, 255, 0.25);
+}
+
+/* ===== EFECTO "PULSE" EN BOTÓN JUGAR AHORA ===== */
+.gn-btn-outline {
+  animation: pulseButton 2s infinite ease-in-out;
+  transform-origin: center;
+}
+
+@keyframes pulseButton {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(154, 76, 255, 0.5); /* Morado suave */
+  }
+  50% {
+    transform: scale(1.07);
+    box-shadow: 0 0 20px rgba(154, 76, 255, 0.9); /* Morado brillante */
+  }
+}
+

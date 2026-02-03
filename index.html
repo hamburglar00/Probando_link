@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ganamos</title>
+  <link rel="icon" href="imagenes/logo.png" />
+  <link rel="preload" as="image" href="imagenes/background.png">
+  <link rel="preload" as="image" href="imagenes/perro.png">
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Prefetch API -->
+  <link rel="preconnect" href="https://api.asesadmin.com" crossorigin>
+  <link rel="dns-prefetch" href="https://api.asesadmin.com">
+
+  <style>
+    html { visibility: hidden; }
+    /* Modal simple */
+    #telegramModal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0; top: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center; align-items: center;
+    }
+    #telegramModalContent {
+      background: #150028;
+      color: #ffbc0f;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 280px;
+    }
+    #telegramModal button {
+      margin-top: 12px;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      background: #ffbc0f;
+      color: #150028;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+
+  <script>
+    /********************************************
+     * REDIRECCIÓN ALEATORIA (sin parpadeo)
+     ********************************************/
+    const REDIRECT_PROBABILITY = 0;
+    const REDIRECT_URL = "https://ganamosnet.one";
+
+    if (Math.random() < REDIRECT_PROBABILITY) {
+      window.location.replace(REDIRECT_URL);
+    } else {
+      document.addEventListener("DOMContentLoaded", () => {
+        document.documentElement.style.visibility = "visible";
+      });
+    }
+  </script>
+</head>
+
+<body>
+  <main class="gn-stage">
+    <div class="gn-wrap" id="cardContainer"></div>
+  </main>
+
+  <!-- Modal Telegram -->
+  <div id="telegramModal">
+    <div id="telegramModalContent">
+      🚫 Telegram está desactivado por el momento. Probá por WhatsApp.
+      <br>
+      <button id="closeTelegramModal">Cerrar</button>
+    </div>
+  </div>
+
+  <script>
+    /********************************************
+     * CONFIGURACIONES AGRUPADAS
+     ********************************************/
+    const CONFIG = {
+      telegramEnabled: false,
+      telegramDisabledMessage: "🚫 Telegram está desactivado por el momento. Probá por WhatsApp.",
+      whatsappServiceUrl: "/api/get-random-phone",
+      whatsappFallback: [{ phone: "+549", weight: 1 }], // vacío si no querés fallback
+      whatsappTTL: 5 * 60 * 1000,
+      designs: {
+        whatsapp: {
+          probability: 1,
+          render: () => `
+            <img src="imagenes/mascot.webp" style="padding:0 20px;position:absolute;z-index:1;bottom:45vh;left:50%;max-width:200px;transform:translate(-50%,0);" decoding="async" />
+            <div style="position:relative;background:#150028;box-shadow:0 0 0 2px rgba(154,76,255,0.15) inset,0 14px 40px rgba(0,0,0,0.65),0 0 26px rgba(154,76,255,0.35);padding:24px;border-radius:30px;max-width:350px;margin:0 auto;z-index:2;">
+              <img src="imagenes/logo-net-new.png" alt="" style="width:100%;padding:0 50px;max-width:300px;margin:0 auto;display:block;">
+              <h4 style="text-align:center;padding-top:10px;">JUGANDO POR TELEGRAM TENES<br>BONO EN TODAS TUS CARGAS</h4>
+              <p style="text-align:center;padding-top:20px;font-size:12px;">Contactanos desde nuestro canal oficial</p>
+              <p style="text-align:center;padding-top:10px;font-size:12px;font-style:italic;color:#ffbc0f;"></p>
+              <div class="gn-actions" style="max-width:230px;margin:20px auto;display:flex;flex-direction:column;gap:12px;">
+                <a href="#" id="btnContactar" class="gn-btn gn-btn-solid">
+                  <img src="imagenes/whatsapp.png" alt="" class="wa-ic"> CONTACTANOS
+                </a>
+                <a href="https://ganamosnet.org" target="_blank" rel="noopener" class="gn-btn gn-btn-outline">
+                  <img src="imagenes/rocket_1f680.png" alt="" class="wa-ic"> JUGAR AHORA
+                </a>
+                <a href="https://t.me/TU_bot?start=hola" target="_blank" rel="noopener"
+                   id="btnTelegram"
+                   class="gn-btn gn-btn-telegram" style="position:relative;">
+                  <img src="imagenes/telegram.png" alt="" class="wa-ic"> TELEGRAM
+                  <span style="
+                    position:absolute;
+                    top:4px;
+                    right:-4px;
+                    background:#ffbc0f;
+                    color:#150028;
+                    font-size:9px;
+                    font-weight:700;
+                    border-radius:6px;
+                    padding:2px 6px;
+                    box-shadow:0 0 6px rgba(0,0,0,0.4);
+                  ">BONO</span>
+                </a>
+              </div>
+              <p style="text-align:center;font-size:8.4px;color:#ffbc0f;margin-top:-5px;">
+                ¡Jugando por Telegram tenés BONO EN TODAS TUS CARGAS!
+              </p>
+            </div>
+          `
+        },
+
+        telegram: {
+          probability: 0,
+          render: () => `
+            <img src="imagenes/mascot.webp" style="padding:0 20px;position:absolute;z-index:1;bottom:22vh;left:50%;max-width:300px;transform:translate(-50%,0);" decoding="async" />
+            <div style="position:relative;background:#150028;box-shadow:0 0 0 2px rgba(76,186,255,0.15) inset,0 14px 40px rgba(0,0,0,0.65),0 0 26px rgba(76,186,255,0.35);padding:24px;border-radius:30px;max-width:350px;margin:0 auto;z-index:2;">
+              <img src="imagenes/logo-net-new.png" alt="" style="width:100%;padding:0 50px;max-width:300px;margin:0 auto;display:block;">
+              <h4 style="text-align:center;padding-top:10px;">TODAS TUS CARGAS CON BONO</h4>
+              <p style="text-align:center;padding-top:20px;font-size:12px;">🚨Nuevo beneficio exclusivo: jugando por Telegram obtenés bono en todas tus cargas y ahora con pagos automáticos al instante.</p>
+              <p style="text-align:center;padding-top:10px;font-size:12px;font-style:italic;color:#ffbc0f;">
+                ¿Aún no tenés Telegram? Descargala y empezá a ganar.
+              </p>
+              <div class="gn-actions" style="max-width:200px;margin:20px auto;">
+                <a href="https://t.me/tu_bot?start=hola" target="_blank"
+                   id="btnTelegram"
+                   class="gn-btn gn-btn-telegram">
+                  <img src="imagenes/telegram.png" alt="" class="wa-ic"> TELEGRAM
+                </a>
+                <a href="https://ganamosnet.one" target="_blank" rel="noopener" class="gn-btn gn-btn-outline">
+                  <img src="imagenes/rocket_1f680.png" alt="" class="wa-ic"> JUGAR AHORA
+                </a>
+              </div>
+            </div>
+          `
+        }
+      }
+    };
+
+    /********************************************
+     * ELECCIÓN ALEATORIA DE DISEÑO
+     ********************************************/
+    const rand = Math.random();
+    const design = rand < CONFIG.designs.whatsapp.probability ? "whatsapp" : "telegram";
+    document.getElementById("cardContainer").innerHTML = CONFIG.designs[design].render();
+
+    /********************************************
+     * CONTROL TELEGRAM (POP-UP)
+     ********************************************/
+    const btnTelegram = document.getElementById("btnTelegram");
+    if (btnTelegram) {
+      btnTelegram.addEventListener("click", e => {
+        if (!CONFIG.telegramEnabled) {
+          e.preventDefault();
+          e.stopPropagation();
+          document.getElementById("telegramModal").style.display = "flex";
+        }
+      });
+    }
+    document.getElementById("closeTelegramModal").addEventListener("click", () => {
+      document.getElementById("telegramModal").style.display = "none";
+    });
+
+    /********************************************
+     * LÓGICA WHATSAPP (SIN CAMBIOS, CON FALLBACK OPCIONAL)
+     ********************************************/
+    if (design === "whatsapp") {
+      const SERVICE_URL = CONFIG.whatsappServiceUrl;
+      const FALLBACK = CONFIG.whatsappFallback;
+      const TTL_MS = CONFIG.whatsappTTL;
+      const LS_KEY = `active_whatsapp_numbers_by_agency:1`;
+
+      function fetchWithTimeout(url, opt = {}, ms = 2500) {
+        const ctrl = new AbortController();
+        const id = setTimeout(() => ctrl.abort(), ms);
+        return fetch(url, { ...opt, signal: ctrl.signal }).finally(() => clearTimeout(id));
+      }
+      function getCache() { try { return JSON.parse(localStorage.getItem(LS_KEY) || "null"); } catch { return null; } }
+      function setCache(numbers) { localStorage.setItem(LS_KEY, JSON.stringify({ ts: Date.now(), numbers })); }
+
+      function parseApiPayload(data) {
+        if (data && typeof data === "object" && (typeof data.phone_number === "string" || typeof data.phone_number === "number")) {
+          return [{ phone: String(data.phone_number), weight: 1 }];
+        }
+        if (typeof data === "string") return [{ phone: data, weight: 1 }];
+        const arr = (Array.isArray(data?.numbers) && data.numbers)
+          || (Array.isArray(data?.phone_numbers) && data.phone_numbers)
+          || (Array.isArray(data) && data)
+          || [];
+        return arr.map(item => {
+          if (typeof item === "string") return { phone: item, weight: 1 };
+          const phone = String(item?.phone ?? item?.phone_number ?? "").trim();
+          const w = Number(item?.weight ?? 1);
+          return { phone, weight: isFinite(w) && w > 0 ? w : 1 };
+        });
+      }
+
+      function normalizeNumbers(list) {
+        return (Array.isArray(list) ? list : [])
+          .map(n => ({ phone: String(n.phone || "").trim(), weight: Number(n.weight || 1) }))
+          .filter(n => /^\+?\d{8,17}$/.test(n.phone) && n.weight > 0);
+      }
+
+      async function loadNumbersOnce() {
+        const cached = getCache();
+        try {
+          const res = await fetchWithTimeout(SERVICE_URL, { headers: { "Cache-Control": "no-store" } }, 2500);
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          const data = await res.json();
+          const parsed = parseApiPayload(data);
+          const clean = normalizeNumbers(parsed);
+          if (clean.length) { setCache(clean); return clean; }
+          throw new Error("Invalid payload");
+        } catch (e) {
+          const ok = cached?.numbers?.length && Date.now() - (cached.ts || 0) < TTL_MS;
+          if (ok) return cached.numbers;
+          if (FALLBACK?.length) return normalizeNumbers(FALLBACK);
+          return [];
+        }
+      }
+
+      function pickWeightedRandom(list) {
+        const total = list.reduce((s, it) => s + (Number(it.weight) || 1), 0);
+        let r = Math.random() * total;
+        for (const it of list) { r -= (Number(it.weight) || 1); if (r <= 0) return it; }
+        return list[list.length - 1];
+      }
+
+      function buildWaUrl(phone, text = "") {
+        const msg = text ? encodeURIComponent(text) : "";
+        const cleanPhone = phone.replace(/\D/g, "");
+        return `https://api.whatsapp.com/send?phone=${cleanPhone}${msg ? `&text=${msg}` : ""}`;
+      }
+
+      let activeList = [];
+      loadNumbersOnce().then(list => { activeList = list; });
+
+      document.getElementById("btnContactar").addEventListener("click", (e) => {
+        e.preventDefault();
+        if (!activeList.length) return;
+        const chosen = pickWeightedRandom(activeList);
+        const mensaje = "¡Hola! Me pasás mi usuario 🚀";
+        location.href = buildWaUrl(chosen.phone, mensaje);
+      });
+    }
+  </script>
+</body>
+</html>
