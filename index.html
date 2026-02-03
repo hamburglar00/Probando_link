@@ -15,6 +15,7 @@
 
   <style>
     html { visibility: hidden; }
+
     /* Modal simple */
     #telegramModal {
       display: none;
@@ -23,6 +24,7 @@
       left: 0; top: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.6);
       justify-content: center; align-items: center;
+      padding: 18px;
     }
     #telegramModalContent {
       background: #150028;
@@ -30,27 +32,28 @@
       padding: 20px;
       border-radius: 12px;
       text-align: center;
-      max-width: 280px;
+      max-width: 320px;
+      width: 100%;
+      box-shadow: 0 16px 60px rgba(0,0,0,.55);
     }
     #telegramModal button {
       margin-top: 12px;
-      padding: 6px 12px;
+      padding: 8px 14px;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       background: #ffbc0f;
       color: #150028;
-      font-weight: bold;
+      font-weight: 800;
       cursor: pointer;
     }
   </style>
-  
+
   <script>
-  /********************************************
-   * AGENCY ID DESDE URL
-   ********************************************/
+    /********************************************
+     * AGENCY ID DESDE URL (?agency=17)
+     ********************************************/
     const urlParams = new URLSearchParams(window.location.search);
     const AGENCY_ID = Number(urlParams.get("agency")) || 17; // default 17
-  
     console.log("Agency ID:", AGENCY_ID);
   </script>
 
@@ -77,11 +80,10 @@
   </main>
 
   <!-- Modal Telegram -->
-  <div id="telegramModal">
+  <div id="telegramModal" role="dialog" aria-modal="true" aria-hidden="true">
     <div id="telegramModalContent">
-      🚫 Telegram está desactivado por el momento. Probá por WhatsApp.
-      <br>
-      <button id="closeTelegramModal">Cerrar</button>
+      <div id="telegramModalMsg">🚫 Telegram está desactivado por el momento. Probá por WhatsApp.</div>
+      <button id="closeTelegramModal" type="button">Cerrar</button>
     </div>
   </div>
 
@@ -92,9 +94,15 @@
     const CONFIG = {
       telegramEnabled: false,
       telegramDisabledMessage: "🚫 Telegram está desactivado por el momento. Probá por WhatsApp.",
-      whatsappServiceUrl: "/api/get-random-phone",
-      whatsappFallback: [{ phone: "+549", weight: 1 }], // vacío si no querés fallback
+
+      // ✅ Ahora incluye agency dinámico
+      whatsappServiceUrl: `/api/get-random-phone?agency=${AGENCY_ID}`,
+
+      // Si no querés fallback, dejalo: []
+      whatsappFallback: [{ phone: "+549", weight: 1 }],
+
       whatsappTTL: 5 * 60 * 1000,
+
       designs: {
         whatsapp: {
           probability: 1,
@@ -127,6 +135,8 @@
                     border-radius:6px;
                     padding:2px 6px;
                     box-shadow:0 0 6px rgba(0,0,0,0.4);
+                    text-transform:uppercase;
+                    letter-spacing:0.3px;
                   ">BONO</span>
                 </a>
               </div>
@@ -174,46 +184,89 @@
     /********************************************
      * CONTROL TELEGRAM (POP-UP)
      ********************************************/
+    const telegramModal = document.getElementById("telegramModal");
+    const telegramModalMsg = document.getElementById("telegramModalMsg");
+    const closeTelegramModal = document.getElementById("closeTelegramModal");
+
     const btnTelegram = document.getElementById("btnTelegram");
     if (btnTelegram) {
-      btnTelegram.addEventListener("click", e => {
+      btnTelegram.addEventListener("click", (e) => {
         if (!CONFIG.telegramEnabled) {
           e.preventDefault();
           e.stopPropagation();
-          document.getElementById("telegramModal").style.display = "flex";
+          if (telegramModalMsg) telegramModalMsg.textContent = CONFIG.telegramDisabledMessage;
+          if (telegramModal) {
+            telegramModal.style.display = "flex";
+            telegramModal.setAttribute("aria-hidden", "false");
+          }
         }
       });
     }
-    document.getElementById("closeTelegramModal").addEventListener("click", () => {
-      document.getElementById("telegramModal").style.display = "none";
-    });
+
+    if (closeTelegramModal) {
+      closeTelegramModal.addEventListener("click", () => {
+        if (telegramModal) {
+          telegramModal.style.display = "none";
+          telegramModal.setAttribute("aria-hidden", "true");
+        }
+      });
+    }
+
+    // Cerrar modal tocando fuera
+    if (telegramModal) {
+      telegramModal.addEventListener("click", (e) => {
+        if (e.target === telegramModal) {
+          telegramModal.style.display = "none";
+          telegramModal.setAttribute("aria-hidden", "true");
+        }
+      });
+    }
 
     /********************************************
-     * LÓGICA WHATSAPP (SIN CAMBIOS, CON FALLBACK OPCIONAL)
+     * LÓGICA WHATSAPP (con agency + cache por agency)
      ********************************************/
     if (design === "whatsapp") {
       const SERVICE_URL = CONFIG.whatsappServiceUrl;
       const FALLBACK = CONFIG.whatsappFallback;
       const TTL_MS = CONFIG.whatsappTTL;
-      const LS_KEY = `active_whatsapp_numbers_by_agency:1`;
+
+      // ✅ cache separado por agency
+      const LS_KEY = `active_whatsapp_numbers_by_agency:${AGENCY_ID}`;
 
       function fetchWithTimeout(url, opt = {}, ms = 2500) {
         const ctrl = new AbortController();
         const id = setTimeout(() => ctrl.abort(), ms);
         return fetch(url, { ...opt, signal: ctrl.signal }).finally(() => clearTimeout(id));
       }
-      function getCache() { try { return JSON.parse(localStorage.getItem(LS_KEY) || "null"); } catch { return null; } }
-      function setCache(numbers) { localStorage.setItem(LS_KEY, JSON.stringify({ ts: Date.now(), numbers })); }
+
+      function getCache() {
+        try { return JSON.parse(localStorage.getItem(LS_KEY) || "null"); }
+        catch { return null; }
+      }
+
+      function setCache(numbers) {
+        localStorage.setItem(LS_KEY, JSON.stringify({ ts: Date.now(), numbers }));
+      }
 
       function parseApiPayload(data) {
+        // ✅ Formato nuevo de tu API: { number: "...", name: "..."}
+        if (data && typeof data === "object" && ("number" in data) && data.number != null) {
+          return [{ phone: String(data.number), weight: 1 }];
+        }
+
+        // Formato viejo: { phone_number: "..." }
         if (data && typeof data === "object" && (typeof data.phone_number === "string" || typeof data.phone_number === "number")) {
           return [{ phone: String(data.phone_number), weight: 1 }];
         }
+
         if (typeof data === "string") return [{ phone: data, weight: 1 }];
-        const arr = (Array.isArray(data?.numbers) && data.numbers)
-          || (Array.isArray(data?.phone_numbers) && data.phone_numbers)
-          || (Array.isArray(data) && data)
-          || [];
+
+        const arr =
+          (Array.isArray(data?.numbers) && data.numbers) ||
+          (Array.isArray(data?.phone_numbers) && data.phone_numbers) ||
+          (Array.isArray(data) && data) ||
+          [];
+
         return arr.map(item => {
           if (typeof item === "string") return { phone: item, weight: 1 };
           const phone = String(item?.phone ?? item?.phone_number ?? "").trim();
@@ -233,14 +286,17 @@
         try {
           const res = await fetchWithTimeout(SERVICE_URL, { headers: { "Cache-Control": "no-store" } }, 2500);
           if (!res.ok) throw new Error("HTTP " + res.status);
+
           const data = await res.json();
           const parsed = parseApiPayload(data);
           const clean = normalizeNumbers(parsed);
+
           if (clean.length) { setCache(clean); return clean; }
           throw new Error("Invalid payload");
         } catch (e) {
-          const ok = cached?.numbers?.length && Date.now() - (cached.ts || 0) < TTL_MS;
+          const ok = cached?.numbers?.length && (Date.now() - (cached.ts || 0) < TTL_MS);
           if (ok) return cached.numbers;
+
           if (FALLBACK?.length) return normalizeNumbers(FALLBACK);
           return [];
         }
@@ -249,26 +305,33 @@
       function pickWeightedRandom(list) {
         const total = list.reduce((s, it) => s + (Number(it.weight) || 1), 0);
         let r = Math.random() * total;
-        for (const it of list) { r -= (Number(it.weight) || 1); if (r <= 0) return it; }
+        for (const it of list) {
+          r -= (Number(it.weight) || 1);
+          if (r <= 0) return it;
+        }
         return list[list.length - 1];
       }
 
       function buildWaUrl(phone, text = "") {
         const msg = text ? encodeURIComponent(text) : "";
-        const cleanPhone = phone.replace(/\D/g, "");
+        const cleanPhone = String(phone || "").replace(/\D/g, "");
         return `https://api.whatsapp.com/send?phone=${cleanPhone}${msg ? `&text=${msg}` : ""}`;
       }
 
       let activeList = [];
       loadNumbersOnce().then(list => { activeList = list; });
 
-      document.getElementById("btnContactar").addEventListener("click", (e) => {
-        e.preventDefault();
-        if (!activeList.length) return;
-        const chosen = pickWeightedRandom(activeList);
-        const mensaje = "¡Hola! Me pasás mi usuario 🚀";
-        location.href = buildWaUrl(chosen.phone, mensaje);
-      });
+      const btnContactar = document.getElementById("btnContactar");
+      if (btnContactar) {
+        btnContactar.addEventListener("click", (e) => {
+          e.preventDefault();
+          if (!activeList.length) return;
+
+          const chosen = pickWeightedRandom(activeList);
+          const mensaje = "¡Hola! Me pasás mi usuario 🚀";
+          location.href = buildWaUrl(chosen.phone, mensaje);
+        });
+      }
     }
   </script>
 </body>
