@@ -43,6 +43,16 @@
       cursor: pointer;
     }
   </style>
+  
+  <script>
+  /********************************************
+   * AGENCY ID DESDE URL
+   ********************************************/
+    const urlParams = new URLSearchParams(window.location.search);
+    const AGENCY_ID = Number(urlParams.get("agency")) || 17; // default 17
+  
+    console.log("Agency ID:", AGENCY_ID);
+  </script>
 
   <script>
     /********************************************
