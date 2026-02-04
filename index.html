@@ -161,10 +161,12 @@
               <h4 style="text-align:center;padding-top:10px;">JUGANDO POR TELEGRAM TENES<br>BONO EN TODAS TUS CARGAS</h4>
               <p style="text-align:center;padding-top:20px;font-size:12px;">Contactanos desde nuestro canal oficial</p>
               <p style="text-align:center;padding-top:10px;font-size:12px;font-style:italic;color:#ffbc0f;"></p>
+
               <div class="gn-actions" style="max-width:230px;margin:20px auto;display:flex;flex-direction:column;gap:12px;">
                 <a href="#" id="btnContactar" class="gn-btn gn-btn-solid">
                   <img src="imagenes/whatsapp.png" alt="" class="wa-ic"> CONTACTANOS
                 </a>
+
                 <a href="https://ganamosnet.org" target="_blank" rel="noopener" class="gn-btn gn-btn-outline">
                   <img src="imagenes/rocket_1f680.png" alt="" class="wa-ic"> JUGAR AHORA
                 </a>
@@ -192,6 +194,7 @@
                   ">BONO</span>
                 </a>
               </div>
+
               <p style="text-align:center;font-size:8.4px;color:#ffbc0f;margin-top:-5px;">
                 ¡Jugando por Telegram tenés BONO EN TODAS TUS CARGAS!
               </p>
@@ -210,6 +213,7 @@
               <p style="text-align:center;padding-top:10px;font-size:12px;font-style:italic;color:#ffbc0f;">
                 ¿Aún no tenés Telegram? Descargala y empezá a ganar.
               </p>
+
               <div class="gn-actions" style="max-width:200px;margin:20px auto;">
                 <!-- ✅ Telegram dinámico por agency: href se setea por JS -->
                 <a href="#"
@@ -252,32 +256,41 @@
     }
 
     /********************************************
-     * TELEGRAM POR AGENCY DESDE /telegram.json
-     * (guardás URL completa)
+     * TELEGRAM POR AGENCY DESDE /api/get-telegram
+     * (la API devuelve telegram_url o null)
      ********************************************/
     async function loadTelegramUrlForAgency(agencyId) {
       if (!agencyId) return null;
 
-      const CACHE_KEY = "telegram_map_cache:v1";
+      // cache local por agency (10 min)
+      const CACHE_KEY = `telegram_url_cache:v1:${agencyId}`;
       const CACHE_TTL = 10 * 60 * 1000;
 
       try {
         const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
-        if (cached?.ts && (Date.now() - cached.ts < CACHE_TTL) && cached.map) {
-          const url = cached.map[String(agencyId)];
-          return typeof url === "string" && url.startsWith("https://t.me/") ? url : null;
+        if (cached?.ts && (Date.now() - cached.ts < CACHE_TTL) && cached.url) {
+          return cached.url;
         }
       } catch {}
 
       try {
-        const res = await fetch("/telegram.json", { cache: "no-store" });
+        const res = await fetch(
+          `/api/get-telegram?agency=${encodeURIComponent(agencyId)}`,
+          { cache: "no-store" }
+        );
         if (!res.ok) return null;
 
-        const map = await res.json();
-        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), map })); } catch {}
+        const data = await res.json();
+        const url = data?.telegram_url;
 
-        const url = map?.[String(agencyId)];
-        return typeof url === "string" && url.startsWith("https://t.me/") ? url : null;
+        const valid = typeof url === "string" && url.startsWith("https://t.me/");
+        if (!valid) return null;
+
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), url }));
+        } catch {}
+
+        return url;
       } catch {
         return null;
       }
