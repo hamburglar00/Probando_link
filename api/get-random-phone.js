@@ -8,7 +8,7 @@ const CONFIG = {
   BRAND_NAME: "Ganamos",
 
   // Soporte (Plan D)
-  SUPPORT_FALLBACK_ENABLED: true,
+  SUPPORT_FALLBACK_ENABLED: false,
   SUPPORT_FALLBACK_NUMBER: "",
 
   TIMEOUT_MS: 2500,
